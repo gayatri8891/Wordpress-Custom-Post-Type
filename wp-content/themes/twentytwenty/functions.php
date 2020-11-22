@@ -754,3 +754,47 @@ function twentytwenty_get_elements_array() {
 	*/
 	return apply_filters( 'twentytwenty_get_elements_array', $elements );
 }
+
+/**
+*Custom Post Type Service Function
+*/
+
+function wpt_services_post_type() {
+
+	$labels = array(
+		'name'               => __( 'Services' ),
+		'singular_name'      => __( 'Service' ),
+		'add_new'            => __( 'Add New Service' ),
+		'add_new_item'       => __( 'Add New Service' ),
+		'edit_item'          => __( 'Edit Service' ),
+		'new_item'           => __( 'Add New Service' ),
+		'view_item'          => __( 'View Service' ),
+		'search_items'       => __( 'Search Service' ),
+		'not_found'          => __( 'No Services found' ),
+		'not_found_in_trash' => __( 'No Services found in trash' )
+	);
+
+	$supports = array(
+		'title',
+		'editor',
+		'thumbnail',
+		'comments',
+		'revisions',
+	);
+
+	$args = array(
+		'labels'               => $labels,
+		'supports'             => $supports,
+		'public'               => true,
+		'capability_type'      => 'post',
+		'rewrite'              => array( 'slug' => 'Services' ),
+		'has_archive'          => true,
+		'menu_position'        => 30,
+	);
+
+	// registering post type.
+	register_post_type( 'Services', $args );
+
+}
+// adding custom post type function in action hook.
+add_action( 'init', 'wpt_services_post_type' );
