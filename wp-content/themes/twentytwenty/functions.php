@@ -790,6 +790,7 @@ function wpt_services_post_type() {
 		'rewrite'              => array( 'slug' => 'Services' ),
 		'has_archive'          => true,
 		'menu_position'        => 30,
+		'register_meta_box_cb' => 'wpt_add_Service_metaboxes',
 	);
 
 	// registering post type.
