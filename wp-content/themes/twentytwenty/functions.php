@@ -798,3 +798,109 @@ function wpt_services_post_type() {
 }
 // adding custom post type function in action hook.
 add_action( 'init', 'wpt_services_post_type' );
+
+/**
+ * Adding a custom metabox.
+ */
+function wpt_add_services_metaboxes() {
+	add_meta_box(
+		'wpt_services_type',
+		'Services Type',
+		'wpt_services_type',
+		'services',
+		'side',
+		'default'
+	);
+}
+
+/**
+ * Custom Metabox Services Type Function.
+ */
+function wpt_services_type() {
+	global $post;
+	wp_nonce_field( basename( __FILE__ ), 'services_fields' );
+	$stype = get_post_meta( $post->ID, 'stype', true );
+	echo '<input type="text" name="stype" value="' . esc_textarea( $stype )  . '" class="widefat">';
+}
+
+/**
+ * Save the metabox data
+ */
+function wpt_save_services_meta( $post_id, $post ) {
+
+	// Return if the user doesn't have edit permissions.
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return $post_id;
+	}
+
+	// Verify this came from the our screen and with proper authorization,
+	// because save_post can be triggered at other times.
+	if ( ! isset( $_POST['stype'] ) || ! wp_verify_nonce( $_POST['service_fields'], basename(__FILE__) ) ) {
+		return $post_id;
+	}
+
+	// Now that we're authenticated, time to save the data.
+	// This filter the data from the field and saves it into an array $services_meta.
+	$services_meta['stype'] = esc_textarea( $_POST['stype'] );
+
+	// In this example we just have one item, but this is helpful if you have multiple.
+	foreach ( $services_meta as $key => $value ) :
+
+		// Don't store custom data twice
+		if ( 'revision' === $post->post_type ) {
+			return;
+		}
+
+		if ( get_post_meta( $post_id, $key, false ) ) {
+			// If the custom field already has a value, update it.
+			update_post_meta( $post_id, $key, $value );
+		} else {
+			// If the custom field doesn't have a value, add it.
+			add_post_meta( $post_id, $key, $value);
+		}
+
+		if ( ! $value ) {
+			// Delete the meta key if there's no value
+			delete_post_meta( $post_id, $key );
+		}
+
+	endforeach;
+
+}
+
+// now its an call time using add_action hook function
+add_action( 'save_post', 'wpt_add_services_metaboxes', 1, 2 );
+
+/**
+*function for service shortcode
+**/
+
+if ( ! function_exists('services_shortcode') ) {
+
+    function services_shortcode() {
+    	$args   =   array(
+                	'post_type'         =>  'services',
+                	'post_status'       =>  'publish',
+                	'order' => 'ASC',
+                	'posts_per_page' => 5,
+    	            );
+    	            
+        $postslist = new WP_Query( $args );
+        global $post;
+		$services = '';
+        if ( $postslist->have_posts() ) :
+        $services   .= '<div class="services-lists">';
+		
+            while ( $postslist->have_posts() ) : $postslist->the_post();         
+                $services    .= '<div class="items">';
+                $services    .= '<a href="'. get_permalink() .'">'. get_the_title() .'</a>';
+                $services    .= '</div>';            
+            endwhile;
+            wp_reset_postdata();
+            $services  .= '</div>';			
+        endif;    
+        return $services;
+    }
+    add_shortcode( 'recent_services', 'services_shortcode' );    
+}
+
